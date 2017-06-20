@@ -3,6 +3,7 @@ defmodule Servy.BearController do
   alias Servy.Conv
   alias Servy.WildThings
   alias Servy.Bear
+  alias Servy.BearView
 
   @templates_path Path.expand("../../templates",__DIR__)
 
@@ -15,12 +16,12 @@ defmodule Servy.BearController do
     bears =  WildThings.list_bears() 
       |> Enum.sort(&Bear.order_asc_by_name/2)
     
-    render(conv,"index.eex",bears: bears)
+    %Conv{conv | status: 200, resp_body: BearView.index(bears)}
   end
 
   def show(conv,%{"id" => id} = params) do
     bear = WildThings.get_bear(id)
-    render(conv,"show.eex",bear: bear)
+    %Conv{conv | status: 200, resp_body: BearView.show(bear)}
   end
 
   def create(conv,%{"type" => type, "name" => name}= params) do 
