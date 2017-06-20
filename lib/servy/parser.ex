@@ -2,10 +2,11 @@ defmodule Servy.Parser do
   alias Servy.Conv
   def parse(request) do 
     [request_and_headers, body] = request |> String.split("\n\n")
-    [request | headers] = String.split(request_and_headers,"\n")
+    [request | headers_lines] = String.split(request_and_headers,"\n")
     
     [method,path,_] = String.split(request," ")
-    headers = parse_headers(headers,%{})
+    headers = parse_headers(headers_lines)
+    # headers = parse_headers(headers_lines,%{})
     params = parse_params(headers["Content-Type"],body)
 
     %Conv{
@@ -16,13 +17,12 @@ defmodule Servy.Parser do
     }
   end
 
-  defp parse_headers([head | tail],headers) do
-    [key,value] = String.split(head,": ")
-    headers = Map.put(headers,key,value)
-    parse_headers(tail,headers)
+  defp parse_headers(header_lines) do 
+    Enum.reduce(header_lines,%{},fn(header_line,headers_so_far) -> 
+     [key,value] = String.split(header_line,": ")
+     Map.put(headers_so_far,key,value)
+    end)
   end
-
-  defp parse_headers([],headers), do: headers
 
   defp parse_params("application/x-www-form-urlencoded",params_string) do
     params_string |> String.trim |> URI.decode_query
